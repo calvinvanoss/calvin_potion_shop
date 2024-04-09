@@ -13,12 +13,14 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory ORDER BY created_at DESC LIMIT 1;"))
 
-    return [
-        {
-            "sku": "GREEN_POTION_0",
-            "name": "green potion",
-            "quantity": result.fetchone()[2],
-            "price": 50,
-            "potion_type": [0, 100, 0, 0],
-        }
-    ]
+    if result.fetchone()[2] > 0:
+        return [
+            {
+                "sku": "GREEN_POTION_0",
+                "name": "green potion",
+                "quantity": 1,
+                "price": 50,
+                "potion_type": [0, 100, 0, 0],
+            }
+        ]
+    return []
