@@ -43,7 +43,7 @@ def get_bottle_plan():
         green_ml = result.fetchone()[3]
         bottled_quantity = green_ml // 100
 
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml - :bottled_quantity;"), {"bottled_quantity": bottled_quantity})
+        connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml - :bottled_quantity;"), {"bottled_quantity": bottled_quantity * 100})
         return [
             {
                 "potion_type": [0, 100, 0, 0],
