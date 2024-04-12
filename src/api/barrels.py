@@ -41,7 +41,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         inventory = result.fetchone()
         for barrel in wholesale_catalog:  
-            if barrel.potion_type == [0, 0, 100, 0]:
+            if barrel.potion_type == [0, 100, 0, 0]:
                 if inventory[2] < 10 and inventory[4] >= barrel.price:
                     return [
                         {
