@@ -13,7 +13,7 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory LIMIT 1;"))
 
-    if result.fetchone() > 0:
+    if result.scalar() > 0:
         return [
             {
                 "sku": "GREEN_POTION_0",

@@ -40,7 +40,7 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory LIMIT 1;"))
 
-        green_ml = result.fetchone()
+        green_ml = result.scalar()
         bottled_quantity = green_ml // 100
 
         if bottled_quantity == 0:
