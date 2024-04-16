@@ -90,6 +90,7 @@ def post_visits(visit_id: int, customers: list[Customer]):
 
 cart_increment = 0
 
+
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """

@@ -73,7 +73,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     with db.engine.begin() as connection:
         result = connection.execute(
             sqlalchemy.text(
-                "SELECT num_green_potions, num_blue_potions, num_red_potions, gold FROM global_inventory ORDER BY created_at DESC LIMIT 1;"
+                "SELECT num_green_potions, num_blue_potions, num_red_potions, gold FROM global_inventory LIMIT 1;"
             )
         )
 
