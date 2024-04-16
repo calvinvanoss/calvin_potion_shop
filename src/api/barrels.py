@@ -37,12 +37,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(wholesale_catalog)
 
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT * FROM global_inventory ORDER BY created_at DESC LIMIT 1;"))
+        result = connection.execute(sqlalchemy.text("SELECT num_green_potions, gold FROM global_inventory ORDER BY created_at DESC LIMIT 1;"))
 
         inventory = result.fetchone()
         for barrel in wholesale_catalog:  
             if barrel.sku == "SMALL_GREEN_BARREL":
-                if inventory[2] < 10 and inventory[4] >= barrel.price:
+                if inventory[0] < 10 and inventory[1] >= barrel.price:
                     return [
                         {
                             "sku": barrel.sku,
