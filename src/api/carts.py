@@ -11,15 +11,18 @@ router = APIRouter(
     dependencies=[Depends(auth.get_api_key)],
 )
 
+
 class search_sort_options(str, Enum):
     customer_name = "customer_name"
     item_sku = "item_sku"
     line_item_total = "line_item_total"
     timestamp = "timestamp"
 
+
 class search_sort_order(str, Enum):
     asc = "asc"
-    desc = "desc"   
+    desc = "desc"
+
 
 @router.get("/search/", tags=["search"])
 def search_orders(
@@ -32,7 +35,7 @@ def search_orders(
     """
     Search for cart line items by customer name and/or potion sku.
 
-    Customer name and potion sku filter to orders that contain the 
+    Customer name and potion sku filter to orders that contain the
     string (case insensitive). If the filters aren't provided, no
     filtering occurs on the respective search term.
 
@@ -48,7 +51,7 @@ def search_orders(
 
     The response itself contains a previous and next page token (if
     such pages exist) and the results as an array of line items. Each
-    line item contains the line item id (must be unique), item sku, 
+    line item contains the line item id (must be unique), item sku,
     customer name, line item total (in gold), and timestamp of the order.
     Your results must be paginated, the max results you can return at any
     time is 5 total line items.
@@ -74,6 +77,7 @@ class Customer(BaseModel):
     character_class: str
     level: int
 
+
 @router.post("/visits/{visit_id}")
 def post_visits(visit_id: int, customers: list[Customer]):
     """
@@ -84,30 +88,66 @@ def post_visits(visit_id: int, customers: list[Customer]):
     return "OK"
 
 
+cart_increment = 0
+
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
-    return {"cart_id": 1}
+    global cart_increment
+    cart_increment += 1
+    carts[cart_increment] = {}
+    return {"cart_id": cart_increment}
 
 
 class CartItem(BaseModel):
     quantity: int
 
 
+carts = {}
+
+
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
-
+    global carts
+    carts[cart_id][item_sku] = cart_item.quantity
     return "OK"
 
 
 class CartCheckout(BaseModel):
     payment: str
 
+
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
+    global carts
+    cart = carts[cart_id]
+
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_potions = num_green_potions - 1, gold = gold + 50;"))
+        for item_sku, quantity in cart.items():
+            if item_sku == "GREEN_POTION_0":
+                connection.execute(
+                    sqlalchemy.text(
+                        "UPDATE global_inventory SET num_green_potions = num_green_potions - :quantity, gold = gold + :gold;"
+                    ),
+                    {"quantity": quantity, "gold": quantity * 50},
+                )
+            elif item_sku == "BLUE_POTION_0":
+                connection.execute(
+                    sqlalchemy.text(
+                        "UPDATE global_inventory SET num_blue_potions = num_blue_potions - :quantity, gold = gold + :gold;"
+                    ),
+                    {"quantity": quantity, "gold": quantity * 50},
+                )
+            elif item_sku == "RED_POTION_0":
+                connection.execute(
+                    sqlalchemy.text(
+                        "UPDATE global_inventory SET num_red_potions = num_red_potions - :quantity, gold = gold + :gold;"
+                    ),
+                    {"quantity": quantity, "gold": quantity * 50},
+                )
+            else:
+                pass
 
     return {"total_potions_bought": 1, "total_gold_paid": 50}
