@@ -28,7 +28,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 
     with db.engine.begin() as connection:
         for barrel in barrels_delivered:
-            if barrel.potion_type == [0, 100, 0, 0]:
+            if barrel.potion_type == [0, 1, 0, 0]:
                 connection.execute(
                     sqlalchemy.text(
                         "UPDATE global_inventory SET num_green_ml = num_green_ml + :quantity, gold = gold - :price;"
@@ -38,7 +38,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                         "price": barrel.price,
                     },
                 )
-            elif barrel.potion_type == [0, 0, 100, 0]:
+            elif barrel.potion_type == [0, 0, 1, 0]:
                 connection.execute(
                     sqlalchemy.text(
                         "UPDATE global_inventory SET num_blue_ml = num_blue_ml + :quantity, gold = gold - :price;"
@@ -48,7 +48,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                         "price": barrel.price,
                     },
                 )
-            elif barrel.potion_type == [100, 0, 0, 0]:
+            elif barrel.potion_type == [1, 0, 0, 0]:
                 connection.execute(
                     sqlalchemy.text(
                         "UPDATE global_inventory SET num_red_ml = num_red_ml + :quantity, gold = gold - :price;"
@@ -88,7 +88,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             and num_green_potions <= num_red_potions
         ):
             for barrel in wholesale_catalog:
-                if barrel.potion_type == [0, 100, 0, 0]:
+                if barrel.potion_type == [0, 1, 0, 0]:
                     if gold >= barrel.price:
                         return [
                             {
@@ -101,7 +101,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             and num_blue_potions <= num_red_potions
         ):
             for barrel in wholesale_catalog:
-                if barrel.potion_type == [0, 0, 100, 0]:
+                if barrel.potion_type == [0, 0, 1, 0]:
                     if gold >= barrel.price:
                         return [
                             {
@@ -111,7 +111,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         ]
         if num_red_potions <= num_green_potions and num_red_potions <= num_blue_potions:
             for barrel in wholesale_catalog:
-                if barrel.potion_type == [100, 0, 0, 0]:
+                if barrel.potion_type == [1, 0, 0, 0]:
                     if gold >= barrel.price:
                         return [
                             {
