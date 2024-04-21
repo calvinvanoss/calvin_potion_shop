@@ -31,7 +31,7 @@ def get_inventory():
 
     return {
         "number_of_potions": num_green_potions + num_blue_potions + num_red_potions,
-        "ml_in_barrels": (num_green_ml + num_blue_ml + num_red_ml) // 100,
+        "ml_in_barrels": num_green_ml + num_blue_ml + num_red_ml,
         "gold": gold,
     }
 
