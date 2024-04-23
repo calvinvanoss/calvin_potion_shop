@@ -52,35 +52,62 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
         inventory = connection.execute(
             sqlalchemy.text(
-                "SELECT green_ml, blue_ml, red_ml FROM global_inventory LIMIT 1;"
+                "SELECT red_ml, green_ml, blue_ml FROM global_inventory LIMIT 1;"
             )
         ).fetchone()
 
-        green_ml = inventory[0]
-        blue_ml = inventory[1]
-        red_ml = inventory[2]
+        red_ml = inventory[0]
+        green_ml = inventory[1]
+        blue_ml = inventory[2]
 
         order = []
 
+        if red_ml >= 50 and green_ml >= 50:
+            order.append(
+                {
+                    "potion_type": [50, 50, 0, 0],
+                    "quantity": 1,
+                }
+            )
+            red_ml -= 1
+            green_ml -= 1
+        if red_ml >= 50 and blue_ml >= 50:
+            order.append(
+                {
+                    "potion_type": [50, 0, 50, 0],
+                    "quantity": 1,
+                }
+            )
+            red_ml -= 1
+            blue_ml -= 1
+        if green_ml >= 50 and blue_ml >= 50:
+            order.append(
+                {
+                    "potion_type": [0, 50, 50, 0],
+                    "quantity": 1,
+                }
+            )
+            green_ml -= 1
+            blue_ml -= 1
         if green_ml >= 100:
             order.append(
                 {
                     "potion_type": [0, 100, 0, 0],
-                    "quantity": green_ml // 100,
+                    "quantity": 1,
                 }
             )
         if blue_ml >= 100:
             order.append(
                 {
                     "potion_type": [0, 0, 100, 0],
-                    "quantity": blue_ml // 100,
+                    "quantity": 1,
                 }
             )
         if red_ml >= 100:
             order.append(
                 {
                     "potion_type": [100, 0, 0, 0],
-                    "quantity": red_ml // 100,
+                    "quantity": 1,
                 }
             )
 
