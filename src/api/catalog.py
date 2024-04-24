@@ -13,7 +13,10 @@ def get_catalog():
     with db.engine.begin() as connection:
         potions = connection.execute(
             sqlalchemy.text(
-                "SELECT sku, name, quantity, price, potion_type from potions;"
+                """
+                SELECT sku, name, quantity, price, potion_type from potions
+                WHERE quantity > 0;
+                """
             )
         ).fetchall()
 
