@@ -50,6 +50,14 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
     with db.engine.begin() as connection:
+        potion_types = connection.execute(
+            sqlalchemy.text(
+                """
+                SELECT potion_type from potions;
+                """
+            )
+        ).fetchall()
+
         inventory = connection.execute(
             sqlalchemy.text(
                 "SELECT red_ml, green_ml, blue_ml FROM global_inventory LIMIT 1;"
@@ -62,54 +70,28 @@ def get_bottle_plan():
 
         order = []
 
-        if red_ml >= 50 and green_ml >= 50:
-            order.append(
-                {
-                    "potion_type": [50, 50, 0, 0],
-                    "quantity": 1,
-                }
-            )
-            red_ml -= 1
-            green_ml -= 1
-        if red_ml >= 50 and blue_ml >= 50:
-            order.append(
-                {
-                    "potion_type": [50, 0, 50, 0],
-                    "quantity": 1,
-                }
-            )
-            red_ml -= 1
-            blue_ml -= 1
-        if green_ml >= 50 and blue_ml >= 50:
-            order.append(
-                {
-                    "potion_type": [0, 50, 50, 0],
-                    "quantity": 1,
-                }
-            )
-            green_ml -= 1
-            blue_ml -= 1
-        if green_ml >= 100:
-            order.append(
-                {
-                    "potion_type": [0, 100, 0, 0],
-                    "quantity": 1,
-                }
-            )
-        if blue_ml >= 100:
-            order.append(
-                {
-                    "potion_type": [0, 0, 100, 0],
-                    "quantity": 1,
-                }
-            )
-        if red_ml >= 100:
-            order.append(
-                {
-                    "potion_type": [100, 0, 0, 0],
-                    "quantity": 1,
-                }
-            )
+        for potion in potion_types:
+            potion_type = potion[0]
+
+            red_required = potion_type[0]
+            green_required = potion_type[1]
+            blue_required = potion_type[2]
+
+            if (
+                red_ml >= red_required
+                and green_ml >= green_required
+                and blue_ml >= blue_required
+            ):
+                order.append(
+                    {
+                        "potion_type": potion_type,
+                        "quantity": 1,
+                    }
+                )
+
+                red_ml -= red_required
+                green_ml -= green_required
+                blue_ml -= blue_required
 
         return order
 

@@ -135,12 +135,15 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         cart_items = connection.execute(
             sqlalchemy.text(
                 f"""
-                SELECT sku, quantity from cart_items WHERE cart_id = {cart_id};
+                SELECT cart_items.sku, cart_items.quantity, potions.price 
+                FROM cart_items 
+                JOIN potions ON cart_items.sku = potions.sku 
+                WHERE cart_id = {cart_id};
                 """
             ),
         ).fetchall()
 
-        for item_sku, quantity in cart_items:
+        for item_sku, quantity, _ in cart_items:
             connection.execute(
                 sqlalchemy.text(
                     f"""
@@ -149,10 +152,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 ),
             )
 
+        total_potions = sum(quantity for _, quantity, _ in cart_items)
+        total_gold = sum((price * quantity) for _, quantity, price in cart_items)
+
         connection.execute(
             sqlalchemy.text(
                 f"""
-                UPDATE global_inventory SET gold = gold + {int(cart_checkout.payment)};
+                UPDATE global_inventory SET gold = gold + {total_gold};
                 """
             ),
         )
@@ -165,7 +171,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             ),
         )
 
-    return {
-        "total_potions_bought": sum(quantity for _, quantity in cart_items),
-        "total_gold_paid": int(cart_checkout.payment),
-    }
+        return {
+            "total_potions_bought": total_potions,
+            "total_gold_paid": total_gold,
+        }
