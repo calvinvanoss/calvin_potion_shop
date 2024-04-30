@@ -143,11 +143,23 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             ),
         ).fetchall()
 
+        transaction = connection.execute(
+            sqlalchemy.text(
+                f"""
+                INSERT INTO potion_transactions (description) VALUES ('Cart {cart_id} checkout')
+                RETURNING id;
+                """
+            ),
+        ).fetchone()[0]
+
         for item_sku, quantity, _ in cart_items:
             connection.execute(
                 sqlalchemy.text(
                     f"""
-                    UPDATE potions SET quantity = quantity - {quantity} WHERE sku = '{item_sku}';
+                    INSERT INTO potion_ledger_entries (sku, quantity, transaction) VALUES (
+                    '{item_sku}',
+                    {-quantity},
+                    {transaction});
                     """
                 ),
             )
@@ -158,7 +170,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         connection.execute(
             sqlalchemy.text(
                 f"""
-                UPDATE global_inventory SET gold = gold + {total_gold};
+                INSERT INTO global_inventory (red_ml, green_ml, blue_ml, gold, description) VALUES (
+                0,
+                0,
+                0,
+                {total_gold},
+                'Cart {cart_id} checkout');
                 """
             ),
         )

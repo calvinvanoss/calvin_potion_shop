@@ -31,11 +31,12 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
             connection.execute(
                 sqlalchemy.text(
                     f"""
-                    UPDATE global_inventory SET
-                    red_ml = red_ml + {barrel.potion_type[0] * barrel.quantity * barrel.ml_per_barrel},
-                    green_ml = green_ml + {barrel.potion_type[1] * barrel.quantity * barrel.ml_per_barrel},
-                    blue_ml = blue_ml + {barrel.potion_type[2] * barrel.quantity * barrel.ml_per_barrel},
-                    gold = gold - {barrel.price};
+                    INSERT INTO global_inventory (red_ml, green_ml, blue_ml, gold, description) VALUES (
+                    {barrel.potion_type[0] * barrel.quantity * barrel.ml_per_barrel},
+                    {barrel.potion_type[1] * barrel.quantity * barrel.ml_per_barrel},
+                    {barrel.potion_type[2] * barrel.quantity * barrel.ml_per_barrel},
+                    {-barrel.price},
+                    'Barrel order {order_id}: {barrel.sku} delivered');
                     """
                 ),
             )
@@ -52,7 +53,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     with db.engine.begin() as connection:
         inventory = connection.execute(
             sqlalchemy.text(
-                "SELECT red_ml, green_ml, blue_ml, gold FROM global_inventory LIMIT 1;"
+                "SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(gold) FROM global_inventory;"
             )
         ).fetchone()
 

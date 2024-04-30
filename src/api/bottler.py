@@ -22,16 +22,28 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
     print(f"potions delievered: {potions_delivered} order_id: {order_id}")
 
     with db.engine.begin() as connection:
+        transaction = connection.execute(
+            sqlalchemy.text(
+                f"""
+                INSERT INTO POTION_TRANSACTIONS (description) VALUES ('Bottler order {order_id}')
+                RETURNING id;
+                """
+            )
+        ).fetchone()[0]
         for potion in potions_delivered:
             connection.execute(
                 sqlalchemy.text(
                     f"""
-                    UPDATE global_inventory SET
-                    red_ml = red_ml - {potion.potion_type[0] * potion.quantity},
-                    green_ml = green_ml - {potion.potion_type[1] * potion.quantity},
-                    blue_ml = blue_ml - {potion.potion_type[2] * potion.quantity};
-                    UPDATE potions SET quantity = quantity + {potion.quantity}
-                    WHERE potion_type = ARRAY{potion.potion_type}::int[];
+                    INSERT INTO global_inventory (red_ml, green_ml, blue_ml, gold, description) VALUES (
+                    {-potion.potion_type[0] * potion.quantity},
+                    {-potion.potion_type[1] * potion.quantity},
+                    {-potion.potion_type[2] * potion.quantity},
+                    0,
+                    'Bottler order {order_id}: {potion.quantity} {potion.potion_type} potion(s)');
+                    INSERT INTO potion_ledger_entries (sku, quantity, transaction) VALUES (
+                    (SELECT sku FROM potions WHERE potion_type = ARRAY{potion.potion_type}),
+                    {potion.quantity},
+                    {transaction});
                     """
                 ),
             )
@@ -60,7 +72,7 @@ def get_bottle_plan():
 
         inventory = connection.execute(
             sqlalchemy.text(
-                "SELECT red_ml, green_ml, blue_ml FROM global_inventory LIMIT 1;"
+                "SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml) FROM global_inventory;"
             )
         ).fetchone()
 

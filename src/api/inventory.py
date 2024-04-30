@@ -17,7 +17,7 @@ def get_inventory():
     with db.engine.begin() as connection:
         inventory = connection.execute(
             sqlalchemy.text(
-                "SELECT red_ml, green_ml, blue_ml, gold FROM global_inventory LIMIT 1;"
+                "SELECT SUM(red_ml), SUM(green_ml), SUM(blue_ml), SUM(gold) FROM global_inventory;"
             )
         ).fetchone()
 
@@ -27,7 +27,7 @@ def get_inventory():
         gold = inventory[3]
 
         num_potions = connection.execute(
-            sqlalchemy.text("SELECT SUM(quantity) FROM potions;")
+            sqlalchemy.text("SELECT SUM(quantity) FROM potion_ledger_entries;")
         ).fetchone()[0]
 
     return {

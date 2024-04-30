@@ -14,8 +14,11 @@ def get_catalog():
         potions = connection.execute(
             sqlalchemy.text(
                 """
-                SELECT sku, name, quantity, price, potion_type from potions
-                WHERE quantity > 0;
+                SELECT p.sku, p.name, SUM(ple.quantity), p.price, p.potion_type 
+                FROM potions p
+                JOIN potion_ledger_entries ple ON p.sku = ple.sku
+                GROUP BY p.sku, p.name, p.price, p.potion_type
+                HAVING SUM(ple.quantity) > 0;
                 """
             )
         ).fetchall()
