@@ -44,6 +44,7 @@ CREATE TABLE carts (
 
 CREATE TABLE cart_items (
     id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cart_id INT NOT NULL,
     sku TEXT NOT NULL,
     quantity INT NOT NULL,
